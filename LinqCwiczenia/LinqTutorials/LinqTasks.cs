@@ -241,7 +241,13 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<object> Task7()
         {
-            IEnumerable<object> result = null;
+            IEnumerable<object> result = from emp in Emps
+                group emp by emp.Job into jobGroup
+                select new
+                {
+                    Praca = jobGroup.Key,
+                    LiczbaPracownikow = jobGroup.Count()
+                };
             return result;
         }
 
@@ -251,7 +257,7 @@ namespace LinqTutorials
         /// </summary>
         public static bool Task8()
         {
-            bool result = false;
+            bool result = Emps.Any(emp => emp.Job == "Backend programmer");
             return result;
         }
 
@@ -261,7 +267,10 @@ namespace LinqTutorials
         /// </summary>
         public static Emp Task9()
         {
-            Emp result = null;
+            Emp result = Emps
+                .Where(emp => emp.Job == "Frontend programmer")
+                .OrderByDescending(emp => emp.HireDate)
+                .FirstOrDefault();
             return result;
         }
 
@@ -272,7 +281,10 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<object> Task10()
         {
-            IEnumerable<object> result = null;
+            IEnumerable<object> result = Emps
+                .Select(emp => new { emp.Ename, emp.Job, emp.HireDate })
+                .Union(new[] { new { Ename = "Brak wartości", Job = (string)null, HireDate = (DateTime?)null } });
+
             return result;
         }
 
@@ -289,7 +301,15 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<object> Task11()
         {
-            IEnumerable<object> result = null;
+            IEnumerable<object> result = from emp in Emps
+                group emp by emp.Deptno into deptGroup
+                where deptGroup.Count() > 1
+                join dept in Depts on deptGroup.Key equals dept.Deptno
+                select new
+                {
+                    name = dept.Dname,
+                    numOfEmployees = deptGroup.Count()
+                };
             return result;
         }
 
@@ -302,7 +322,10 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<Emp> Task12()
         {
-            IEnumerable<Emp> result = null;
+            IEnumerable<Emp> result = Emps
+                .Where(emp => Emps.Any(sub => sub.Mgr != null && sub.Mgr.Empno == emp.Empno))
+                .OrderBy(emp => emp.Ename)
+                .ThenByDescending(emp => emp.Salary);
             return result;
         }
 
@@ -315,8 +338,9 @@ namespace LinqTutorials
         /// </summary>
         public static int Task13(int[] arr)
         {
-            int result = 0;
-            //result=
+            int result = arr.GroupBy(x => x)
+                .Single(g => g.Count() % 2 != 0)
+                .Key;
             return result;
         }
 
@@ -326,8 +350,15 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<Dept> Task14()
         {
-            IEnumerable<Dept> result = null;
-            //result =
+            IEnumerable<Dept> result = Depts
+                .GroupJoin(
+                    Emps,
+                    dept => dept.Deptno,
+                    emp => emp.Deptno,
+                    (dept, empGroup) => new { Dept = dept, EmpCount = empGroup.Count() })
+                .Where(x => x.EmpCount == 0 || x.EmpCount == 5)
+                .Select(x => x.Dept)
+                .OrderBy(dept => dept.Dname);
             return result;
         }
         
@@ -340,8 +371,12 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<Dept> Task15()
         {
-            IEnumerable<Dept> result = null;
-            //result =
+            IEnumerable<Dept> result = Emps
+                .Where(emp => emp.Job.Contains("A"))
+                .GroupBy(emp => emp.Job)
+                .Where(group => group.Count() > 2)
+                .OrderByDescending(group => group.Count())
+                .Select(group => new Dept { Dname = group.Key, Loc = "", Deptno = 0 });
             return result;
         }
         
@@ -350,8 +385,9 @@ namespace LinqTutorials
         /// </summary>
         public static IEnumerable<Dept> Task16()
         {
-            IEnumerable<Dept> result = null;
-            //result =
+            IEnumerable<Dept> result = from emp in Emps
+                from dept in Depts
+                select dept;
             return result;
         }
     }
